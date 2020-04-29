@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
       title: Strings.title,
       theme: ThemeData(
           primaryColor: Colors.grey[300],
+          accentColor: Colors.grey[800],
           textTheme: Theme.of(context).textTheme.copyWith(
                 body1: Theme.of(context).textTheme.body1.copyWith(fontSize: 16),
                 title: Theme.of(context)
@@ -40,6 +41,9 @@ class _MyHomePageState extends State<MyHomePage> {
   /// The controller used to type in a new name
   TextEditingController textEditingController;
 
+  /// Focus Node for TextField
+  FocusNode textFieldfocusNode;
+
   /// Number of packages waiting at the administrations office
   int count = 0;
 
@@ -56,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       var name = prefs.getString('name');
       textEditingController =
           TextEditingController(text: name != null ? name : '');
+      textFieldfocusNode = FocusNode();
       await loadParcels(name);
       if (name == null) {
         setState(() => settingNewName = true);
@@ -63,6 +68,13 @@ class _MyHomePageState extends State<MyHomePage> {
       isInitialising = false;
     }
     super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() async {
+    textEditingController.dispose();
+    textFieldfocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> loadParcels(String name) async {
@@ -87,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void startEditingName() {
     setState(() => settingNewName = true);
+    textFieldfocusNode.requestFocus();
   }
 
   void doneEditingName() async {
@@ -95,21 +108,41 @@ class _MyHomePageState extends State<MyHomePage> {
     await loadParcels(textEditingController.text);
   }
 
+  void showInfoDialog() async {
+    await showDialog(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            content: Text(Strings.info),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('Okay'),
+              )
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Row(
-        children: <Widget>[
-          Image.asset(
-            'assets/logo.png',
-            scale: 1.5,
-            fit: BoxFit.contain,
-          ),
-          SizedBox(width: 10),
-          Text(Strings.title),
+        title: Row(
+          children: <Widget>[
+            Image.asset(
+              'assets/logo.png',
+              scale: 1.5,
+              fit: BoxFit.contain,
+            ),
+            SizedBox(width: 10),
+            Text(Strings.title),
+          ],
+        ),
+        actions: <Widget>[
+          IconButton(icon: Icon(Icons.info_outline), onPressed: showInfoDialog)
         ],
-      )),
+      ),
       body: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
         return showLoadingIndicator
@@ -130,8 +163,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             Strings.yourName,
                           ),
                           title: TextField(
-                            enabled: settingNewName,
+                            // enabled: settingNewName,
                             controller: textEditingController,
+                            focusNode: textFieldfocusNode,
                             textInputAction: TextInputAction.done,
                             onSubmitted: (val) => doneEditingName(),
                             decoration: InputDecoration(
