@@ -4,11 +4,9 @@ import 'package:html/parser.dart';
 /// Return a Map with the Schollheim resident's name as keys and the number
 /// of packages as value.
 Future<Map<String, int>> getParcels() async {
-  var client = http.Client();
   // get webpage html
   String document =
-      (await client.get('http://10.1.1.1/intern/verwaltung/packchen-pakete'))
-          .body;
+      await http.read('http://10.1.1.1/intern/verwaltung/packchen-pakete');
   // get parcel table from http document
   var table = parse(document)
       .querySelectorAll('table')
@@ -39,6 +37,5 @@ Future<Map<String, int>> getParcels() async {
     }
     parcels = {...parcels, name: count};
   }
-
   return parcels;
 }

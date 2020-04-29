@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:schollpaket/cached_shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import './http_provider.dart';
 import './strings.dart';
@@ -33,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isInitialising = true;
-  CachedSharedPreferences prefs;
+  SharedPreferences prefs;
 
   /// Whether the user is currently setting a new name
   bool settingNewName = false;
@@ -54,13 +55,17 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void didChangeDependencies() async {
     if (isInitialising) {
-      isLoading();
-      prefs = await CachedSharedPreferences.getInstance();
+      // isLoading();
+      prefs = await SharedPreferences.getInstance();
 
       var name = prefs.getString('name');
       textEditingController =
           TextEditingController(text: name != null ? name : '');
       textFieldfocusNode = FocusNode();
+      textFieldfocusNode.addListener(() {
+        if (textFieldfocusNode.hasFocus && !settingNewName)
+          setState(() => settingNewName = true);
+      });
       await loadParcels(name);
       if (name == null) {
         setState(() => settingNewName = true);
@@ -108,12 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
     await loadParcels(textEditingController.text);
   }
 
-  void showInfoDialog() async {
+  void showInfoDialog({String text}) async {
     await showDialog(
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            content: Text(Strings.info),
+            content: Text(text == null ? Strings.info : text),
             actions: <Widget>[
               FlatButton(
                 onPressed: () => Navigator.of(ctx).pop(),
