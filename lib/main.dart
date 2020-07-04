@@ -150,17 +150,16 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
-        return showLoadingIndicator
-            ? Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: () async =>
-                    await loadParcels(prefs.getString('name')),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(8),
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height: viewportConstraints.maxHeight,
-                    child: Column(
+        return RefreshIndicator(
+          onRefresh: () async => await loadParcels(prefs.getString('name')),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: viewportConstraints.maxHeight,
+              child: showLoadingIndicator
+                  ? Center(child: CircularProgressIndicator())
+                  : Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         ListTile(
@@ -199,9 +198,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         )
                       ],
                     ),
-                  ),
-                ),
-              );
+            ),
+          ),
+        );
       }),
     );
   }
